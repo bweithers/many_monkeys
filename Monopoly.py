@@ -4,6 +4,7 @@ from BoardSpace import BoardSpace
 from Game import Game
 from time import sleep
 
+
 ansi_colors = {
     'soft_gray': '\033[90m',
     'red': '\033[91m',
@@ -26,12 +27,27 @@ def add_players():
     g.players.append(p2)
     return 0
 
+def parse_property(csv_line: str) -> Property:
+    elements = csv_line.split(', ')
+    name, color, value = elements[:3]
+    rent_list = elements[-5:]
+    return Property(name, color, value, rent_list)
+
 def setup_board():
+    f = open('./board.csv')
+    non_prop_spaces = {0:'Go', 2: 'Community Chest', 4: 'Income Tax', 7: 'Chance', 10: 'Jail', 17: 'Community Chest', 20: 'Free Parking', 22: 'Chance',
+                        30: 'Go to Jail', 33: 'Community Chest', 36: 'Chance', 38: 'Luxury Tax'}
     for i in range(40):
-        p = Property(f'Prop{i}', 'Red', i*100, [i*10**j for j in range(4)])
-        b = BoardSpace(p, i)
+        if i in non_prop_spaces:
+            b = BoardSpace(name = non_prop_spaces[i], location = i)
+        else:
+            line = f.readline()
+            # p = Property(f'Prop{i}', 'Red', i*100, [i*10**j for j in range(4)])
+            p = parse_property(line)
+            b = BoardSpace(p, i)
         g.board.append(b)
     print_board()
+    f.close()
     return 0
 
 def gameplay_loop():
