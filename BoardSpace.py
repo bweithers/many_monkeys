@@ -6,11 +6,13 @@ class BoardSpace:
         self.location = location
         self.players = []
         self.name = self.property.name
+        self.owner = None
 
     def __init__(self, name: str, location: int):
         self.location = location
         self.players = []
         self.name = name 
+        self.owner = None
 
     def is_property(self):
         return self.property is None

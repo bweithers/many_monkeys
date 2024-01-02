@@ -7,7 +7,6 @@ class Property:
         self.value = value
 
         self.houses = 0
-        self.owner = None
         self.mortgaged = False
 
     def mortgage(self):
