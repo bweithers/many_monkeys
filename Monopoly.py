@@ -30,6 +30,7 @@ def add_players():
 def parse_property(csv_line: str) -> Property:
     elements = csv_line.split(', ')
     name, color, value = elements[:3]
+    value = int(value)
     rent_list_size = 0
     match color:
         case 'utility':
@@ -37,7 +38,7 @@ def parse_property(csv_line: str) -> Property:
         case 'railroad':
             rent_list_size = 4
         case _:
-            rent_list_size = 5
+            rent_list_size = 6
     rent_list = list(map(int, elements[-rent_list_size:]))
     return Property(name, color, value, rent_list)
 
@@ -50,7 +51,6 @@ def setup_board():
             b = BoardSpace(name = non_prop_spaces[i], location = i)
         else:
             line = f.readline()
-            # p = Property(f'Prop{i}', 'Red', i*100, [i*10**j for j in range(4)])
             p = parse_property(line)
             b = BoardSpace(Property=p, location=i)
         g.board.append(b)
@@ -58,18 +58,20 @@ def setup_board():
     f.close()
     return 0
 
-def buy_property(player,prop):
-    pass
-
 def gameplay_loop():
     current_player = g.players[g.turn]
     a,b,l = current_player.move()
     current_square = g.board[l]
     if g.verbose:
-        print(f"{g.players[g.turn]}'s turn. They rolled a {a} and a {b} landing them on {current_square}.")
+        if g.players[g.turn].jailed >= 1:
+            print(f"{g.players[g.turn]}'s turn. They rolled a {a} and a {b}. They are still in Jail.")
+        else:
+            print(f"{g.players[g.turn]}'s turn. They rolled a {a} and a {b} landing them on {current_square}.")
     # collect rent, buy property, auction, special space event
     current_square.space_action(lander = current_player)
     g.turn = (g.turn+1) % len(g.players) 
+    if g.verbose:
+        print()
     return 0
     
 def gameover():
@@ -83,13 +85,19 @@ def print_board():
     print(g.board[-1])
     
     return 0
+def cleanup_game():
+    print(f"Game Over! Game lasted: {g.turn_counter} Turns!")
+    for p in g.players:
+        print(f"{p}: {p.money}, {p.properties}, {len(p.properties)}")
+
 
 def driver():
     add_players()
     setup_board()
     while not gameover():
         gameplay_loop()
-        sleep(0.1)
+        g.turn_counter += 1
+    cleanup_game()
     return 0
 
 driver()
