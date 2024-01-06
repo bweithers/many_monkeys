@@ -18,7 +18,7 @@ class Property:
             lander.money -= self.value
             self.owner = lander
             lander.add_property(self)
-            print(f"{lander} is the new owner of {self.name}. They paid {self.value}.")
+            print(f"{lander} is the new owner of {self.name}. They paid ${self.value}. They have ${lander.money} left.")
         return 0
 
     # TODO: lottery? select random player
@@ -32,6 +32,7 @@ class Property:
         if self.houses >= 5: return -1
         self.owner.money -= self.get_house_price()
         self.houses += 1
+        print(f"{self.owner} built house {self.houses} on {self.name}. ", end='')
         return 0
     
     def remove_house(self):
@@ -62,7 +63,7 @@ class Property:
         if lander.money < rent_owed:
             # TODO: sell houses, mortgage etc
             print(f'Money too low. {lander} is now out.')
-            del lander
+            lander.go_out()
         else:
             print(f'{lander} paid {rent_owed} to {self.owner}.')
             self.owner.money += rent_owed
@@ -74,10 +75,17 @@ class Property:
         return self.name == other.name
     
     def __str__(self):
-        return f"{self.name}"
+        if self.color in ['utility', 'railroad'] or self.houses == 0:
+            return f"{self.name}"
+        else:
+            return f"[{self.houses}]{self.name}"
     
     def __repr__(self):
-        return f"{self.name}"
+        if self.color in ['utility', 'railroad'] or self.houses == 0:
+            return f"{self.name}"
+        else:
+            return f"[{self.houses}]{self.name}"
+    
     
     def get_info(self):
         return f"{self.name} Owner: {self.owner}, Houses: {self.houses if self.houses <= 5 else 'hotel'}"

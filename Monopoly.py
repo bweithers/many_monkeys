@@ -5,19 +5,6 @@ from Game import Game
 from time import sleep
 
 
-ansi_colors = {
-    'soft_gray': '\033[90m',
-    'red': '\033[91m',
-    'green': '\033[92m',
-    'yellow': '\033[93m',
-    'blue': '\033[94m',
-    'purple': '\033[95m',
-    'cyan': '\033[96m',
-    'reset': '\033[0m',
-    'bold': '\033[1m',
-    'underline': '\033[4m'
-    }
-
 g = Game(verbose = True)
 
 def add_players():
@@ -58,17 +45,32 @@ def setup_board():
     f.close()
     return 0
 
+#TODO: take in all turn events, print in one place in order.
+def print_turn():
+    pass
+
 def gameplay_loop():
     current_player = g.players[g.turn]
-    a,b,l = current_player.move()
+    # Has to happen when they go out... Can't collect rent after busting.
+    # this shouldn't get triggered.. out ppl should have loc set to -1 as it happens
+    # if current_player.active == False: 
+    #     g.players.remove(current_player)
+    #     return 0
+    a,b,l = current_player.take_turn()
+    if l == -1:
+        print(f'{current_player} is out!')
+        g.players.remove(current_player)
+        return 0
     current_square = g.board[l]
     if g.verbose:
         if g.players[g.turn].jailed >= 1:
             print(f"{g.players[g.turn]}'s turn. They rolled a {a} and a {b}. They are still in Jail.")
         else:
-            print(f"{g.players[g.turn]}'s turn. They rolled a {a} and a {b} landing them on {current_square}.")
+            print(f"{g.players[g.turn]}'s turn. They have ${g.players[g.turn].money}. They rolled a {a} and a {b} landing them on {current_square}.")
     # collect rent, buy property, auction, special space event
     current_square.space_action(lander = current_player)
+    if g.verbose:
+        print_turn()
     g.turn = (g.turn+1) % len(g.players) 
     if g.verbose:
         print()
@@ -83,12 +85,12 @@ def print_board():
         if i+1 % 10 == 0:
             print()
     print(g.board[-1])
-    
     return 0
+
 def cleanup_game():
     print(f"Game Over! Game lasted: {g.turn_counter} Turns!")
     for p in g.players:
-        print(f"{p}: {p.money}, {p.properties}, {len(p.properties)}")
+        print(f"{p}: ${p.money}, {p.properties}, {len(p.properties)}")
 
 
 def driver():
