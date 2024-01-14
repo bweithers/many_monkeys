@@ -56,11 +56,7 @@ def gameplay_loop():
     # if current_player.active == False: 
     #     g.players.remove(current_player)
     #     return 0
-    a,b,l = current_player.take_turn()
-    if l == -1:
-        print(f'{current_player} is out!')
-        g.players.remove(current_player)
-        return 0
+    a,b,l = current_player.move()
     current_square = g.board[l]
     if g.verbose:
         if g.players[g.turn].jailed >= 1:
@@ -69,8 +65,13 @@ def gameplay_loop():
             print(f"{g.players[g.turn]}'s turn. They have ${g.players[g.turn].money}. They rolled a {a} and a {b} landing them on {current_square}.")
     # collect rent, buy property, auction, special space event
     current_square.space_action(lander = current_player)
-    if g.verbose:
-        print_turn()
+    if current_player.active == False:
+        print(f'{current_player} is out!')
+        g.players.remove(current_player)
+        return 0
+    if current_player.can_build_house():
+        current_player.build_houses()
+    current_player.trade()
     g.turn = (g.turn+1) % len(g.players) 
     if g.verbose:
         print()
@@ -90,7 +91,7 @@ def print_board():
 def cleanup_game():
     print(f"Game Over! Game lasted: {g.turn_counter} Turns!")
     for p in g.players:
-        print(f"{p}: ${p.money}, {p.properties}, {len(p.properties)}")
+        print(f"{p}: ${p.money}, {sorted(p.properties, key = lambda x: x.color)}, {len(p.properties)}")
 
 
 def driver():

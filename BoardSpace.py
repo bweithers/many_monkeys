@@ -47,9 +47,15 @@ class BoardSpace:
                 case 'Free Parking':
                     pass
                 case 'Income Tax':
-                    lander.money -= min(200,.1*(lander.money + sum([p.value for p in lander.properties])))
+                    penalty = min(200,round(.1*(lander.money + sum([p.value for p in lander.properties])),0))
+                    print(f'{lander} paid ${penalty}. ', end='')
+                    lander.money -= penalty
                 case 'Luxury Tax':
-                    lander.money -= 100
+                    penalty = 100
+                    lander.money -= penalty
+                    print(f'{lander} paid ${penalty}. ', end='')
+        if lander.money < 0:
+            lander.active = False
         return 0
     
     def __str__(self):

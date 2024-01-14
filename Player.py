@@ -12,14 +12,6 @@ class Player:
         self.color_sets = []
         self.jailed = 0
         self.color_preferences = color_preferences
-
-    def take_turn(self):
-        a,b,l = self.move()
-        if self.can_build_house():
-            self.build_houses()
-        self.trade()
-        if not self.active: l = -1
-        return a,b,l
     
     def go_out(self):
         self.active = False
@@ -40,7 +32,7 @@ class Player:
             else:
                 self.jailed += 1
                 return roll_a, roll_b, self.location
-            
+        
         
         self.location = (self.location + roll_a + roll_b)
         if self.location >= 40:

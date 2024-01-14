@@ -11,8 +11,9 @@ class Property:
         self.owner = None
 
     def get_bought(self,lander):
-        if lander.money <= self.value: 
+        if lander.money < self.value: 
             # TODO: auction
+            print(f"{lander} does not have enough money to purchase. Should be an auction, but nothing happens for now.")
             self.auction()
         else:
             lander.money -= self.value
@@ -63,9 +64,10 @@ class Property:
         if lander.money < rent_owed:
             # TODO: sell houses, mortgage etc
             print(f'Money too low. {lander} is now out.')
-            lander.go_out()
+            lander.active = False
+            return -1
         else:
-            print(f'{lander} paid {rent_owed} to {self.owner}.')
+            print(f'{lander} paid ${rent_owed} to {self.owner}.')
             self.owner.money += rent_owed
             lander.money -= rent_owed
         return 0
