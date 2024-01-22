@@ -20,24 +20,28 @@ class BoardSpace:
 
     # decide if this is a property, if it is do the propety thing else do the thing thing
     def space_action(self, lander: Player = None):
+        outcome = ''
         if self.is_property():
-            print(f'{self.property} is a property. ', end='')
+            outcome = f'{self.property} is a property. '
             if self.is_owned():
-                print(f"It's owned. ", end ='')
-                self.property.pay_rent(lander)
+                outcome += "It's owned. "
+                outcome += self.property.pay_rent(lander)
             else:
-                print(f"It's unowned. ", end ='')
-                self.property.get_bought(lander)
+                outcome += "It's unowned. "
+                outcome += self.property.get_bought(lander)
                 self.owner = self.property.owner
         else:
             match self.name:
                 case 'Go':
                     lander.money += 400
+                    outcome = f'{lander} gained 400 for landing on Go. Up to ${lander.money}.'
                 #TODO Community Chest/Chance
                 case 'Community Chest':
                     lander.money += 50
+                    outcome = f'{lander} gained $50. Up to ${lander.money}'
                 case 'Chance':
-                    lander.money -= 100
+                    lander.pay_money(100)
+                    outcome = f'{lander} paid ${100}. Down to ${lander.money}'
                 case 'Jail':
                     pass
                 case 'Go to Jail':
@@ -48,15 +52,15 @@ class BoardSpace:
                     pass
                 case 'Income Tax':
                     penalty = min(200,round(.1*(lander.money + sum([p.value for p in lander.properties])),0))
-                    print(f'{lander} paid ${penalty}. ', end='')
-                    lander.money -= penalty
+                    outcome = f'{lander} paid ${penalty}'
+                    lander.pay_money(penalty)
                 case 'Luxury Tax':
                     penalty = 100
-                    lander.money -= penalty
-                    print(f'{lander} paid ${penalty}. ', end='')
+                    lander.pay_money(penalty)
+                    outcome = f'{lander} paid ${penalty}'
         if lander.money < 0:
             lander.active = False
-        return 0
+        return outcome
     
     def __str__(self):
         return f'{self.name}'

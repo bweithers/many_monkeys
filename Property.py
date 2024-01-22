@@ -13,14 +13,14 @@ class Property:
     def get_bought(self,lander):
         if lander.money < self.value: 
             # TODO: auction
-            print(f"{lander} does not have enough money to purchase. Should be an auction, but nothing happens for now.")
+            outcome = f"{lander} does not have enough money to purchase. Should be an auction, but nothing happens for now."
             self.auction()
         else:
-            lander.money -= self.value
+            lander.pay_money(self.value)
             self.owner = lander
             lander.add_property(self)
-            print(f"{lander} is the new owner of {self.name}. They paid ${self.value}. They have ${lander.money} left.")
-        return 0
+            outcome = f"{lander} is the new owner of {self.name}. They paid ${self.value}. They have ${lander.money} left."
+        return outcome
 
     # TODO: lottery? select random player
     def auction(self):
@@ -31,7 +31,7 @@ class Property:
     
     def build_house(self):
         if self.houses >= 5: return -1
-        self.owner.money -= self.get_house_price()
+        self.owner.pay_money(self.get_house_price())
         self.houses += 1
         print(f"{self.owner} built house {self.houses} on {self.name}. ", end='')
         return 0
@@ -48,29 +48,27 @@ class Property:
         return 0
     
     def unmortage(self):
-        if self.owner.money < self.value: return -1
+        if self.owner.money < self.value: 
+            return -1
         self.mortgaged = False
-        self.owner.money -= self.value
+        self.owner.pay_money(self.value)
         return 0
     
     def pay_rent(self, lander):
+        outcome = ''
+
         if lander == self.owner: 
-            print(f'{lander} owns {self.name}. No rent to pay.')
-            return 0
+            outcome = f'{lander} owns {self.name}. No rent to pay.'
+            return outcome
         rent_owed = self.rent_list[self.houses]
+
         if self.houses == 0 and self.color in self.owner.color_sets: 
             rent_owed *= 2
 
-        if lander.money < rent_owed:
-            # TODO: sell houses, mortgage etc
-            print(f'Money too low. {lander} is now out.')
-            lander.active = False
-            return -1
-        else:
-            print(f'{lander} paid ${rent_owed} to {self.owner}.')
-            self.owner.money += rent_owed
-            lander.money -= rent_owed
-        return 0
+        paid_out = lander.pay_money(rent_owed)
+        self.owner.money += paid_out
+        outcome = f'{lander} paid ${paid_out} to {self.owner}.'
+        return outcome
     
     def __eq__(self, other):
         if not other: return False 

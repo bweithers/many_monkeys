@@ -45,40 +45,70 @@ def setup_board():
     f.close()
     return 0
 
-#TODO: take in all turn events, print in one place in order.
-def print_turn():
-    pass
-
 def gameplay_loop():
     current_player = g.players[g.turn]
+    if not current_player.active: return 
+    print(f"Turn {g.turn_counter}: {current_player}. ")
+
     # Has to happen when they go out... Can't collect rent after busting.
     # this shouldn't get triggered.. out ppl should have loc set to -1 as it happens
     # if current_player.active == False: 
     #     g.players.remove(current_player)
     #     return 0
-    a,b,l = current_player.move()
-    current_square = g.board[l]
-    if g.verbose:
-        if g.players[g.turn].jailed >= 1:
-            print(f"{g.players[g.turn]}'s turn. They rolled a {a} and a {b}. They are still in Jail.")
+    
+    a,b,l,f = current_player.move()
+    current_square = g.board[l] 
+    # Handle Jail first
+    if current_player.jailed >= 1:
+        print(f'Starting {current_player.jailed} turn in jail. ', end='')
+        if a == b:
+            print(f'Rolled {a} doubles. Out of jail.')
+            current_player.jailed = 0
+            gameplay_loop()
+            return
+        if current_player.jailed >=3:
+            current_player.pay_money(50)
+            current_player.jailed = 0
+            print(f'Finished third turn in jail. Paying to be out next turn.')
         else:
-            print(f"{g.players[g.turn]}'s turn. They have ${g.players[g.turn].money}. They rolled a {a} and a {b} landing them on {current_square}.")
+            print(f"Didn't roll doubles. Staying in jail.")
+            current_player.jailed += 1
+    
+    if g.verbose:
+        print(f'Rolled {a} and {b}. Landed on {current_square}. ', end='')
+        if f:
+            print(f'{current_player} passed Go. They collected $200 up to ${current_player.money}. ', end='')
+    
+
     # collect rent, buy property, auction, special space event
-    current_square.space_action(lander = current_player)
+    outcome = current_square.space_action(lander = current_player)
+    
+    if g.verbose:
+        print(outcome)
+    
     if current_player.active == False:
         print(f'{current_player} is out!')
-        g.players.remove(current_player)
+        g.turn = (g.turn+1) % len(g.players) 
         return 0
+
     if current_player.can_build_house():
         current_player.build_houses()
     current_player.trade()
+    
+    if a == b:
+        print(f'{current_player} rolled doubles, they are continuing their turn.')
+        gameplay_loop()
+        return 
+    
     g.turn = (g.turn+1) % len(g.players) 
+
     if g.verbose:
         print()
+
     return 0
     
 def gameover():
-    return len(g.players) <= 1 or g.turn_counter >= 1000
+    return sum([int(p.active) for p in g.players]) <= 1 or g.turn_counter >= 1000
 
 def print_board():
     for i,b in enumerate(g.board[:-1]):

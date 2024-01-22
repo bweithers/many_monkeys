@@ -13,42 +13,37 @@ class Player:
         self.jailed = 0
         self.color_preferences = color_preferences
     
-    def go_out(self):
-        self.active = False
-
+    
+    def pay_money(self, amount):
+        if self.money >= amount:
+            self.money -= amount
+            return amount
+        else:
+            #TODO sell stuff etc
+            paid_out = self.money
+            self.money = 0
+            self.active = False
+            return paid_out
+        return 0
     #TODO? 
     def trade(self):
         pass
     
     def move(self,doubles=0):
-        roll_a = rd.randint(1,6)
-        roll_b = rd.randint(1,6)
-        
-        if self.jailed: 
-            if roll_a == roll_b:
-                self.jailed = 0
-                print(f'{roll_a} Doubles. Out of jail! Roll again to move.')
-                return self.move(doubles = 1)
-            else:
-                self.jailed += 1
-                return roll_a, roll_b, self.location
-        
-        
+        roll_a, roll_b = rd.randint(1,6), rd.randint(1,6) 
+
+        if self.jailed:
+            return roll_a, roll_b, self.location, False
+
         self.location = (self.location + roll_a + roll_b)
-        if self.location >= 40:
+        
+        go_flag = self.location >= 40
+        self.location%=40
+
+        if go_flag:
             self.money += 200
-            self.location %= 40
-            print(f'{self.name} passed Go. Collect $200 up to: {self.money}. ')
-        if roll_a == roll_b:
-            if doubles == 2:
-                print('Straight to jail buddy!')
-                self.location = 10
-                self.jailed = 1
-            else:
-                # TODO: cant skip board action
-                print(f'{roll_a}, {roll_b} Doubles! Roll again.')
-                return self.move(doubles=doubles+1)
-        return roll_a, roll_b, self.location
+        
+        return roll_a, roll_b, self.location, go_flag
 
     def add_property(self, property: Property):
         if property.color in ['utility', 'railroad']:
