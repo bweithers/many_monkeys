@@ -67,7 +67,7 @@ class Property:
 
         paid_out = lander.pay_money(rent_owed)
         self.owner.money += paid_out
-        outcome = f'{lander} paid ${paid_out} to {self.owner}.'
+        outcome = f'${rent_owed} owed. {lander} paid ${paid_out} to {self.owner}.'
         return outcome
     
     def __eq__(self, other):

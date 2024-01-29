@@ -1,4 +1,4 @@
-from Player import Player
+from Player import Player, Trade
 from Property import Property
 from BoardSpace import BoardSpace
 from Game import Game
@@ -45,6 +45,24 @@ def setup_board():
     f.close()
     return 0
 
+def handle_trade(t: Trade):
+    
+    fr, to = t.from_player, t.to_player
+    #flip trade?
+    if money < 0:
+        pass
+
+    for p in t.inbound_props:
+        p.owner = fr
+        to.properties.remove(p)
+        fr.properties.append(p)
+    for p in t.outbound_props:
+        p.owner = to
+        fr.properties.remove(p)
+        to.properties.append(p)
+    
+    to += fr.pay_money(t.money)
+
 def gameplay_loop():
     current_player = g.players[g.turn]
     if not current_player.active: return 
@@ -52,6 +70,7 @@ def gameplay_loop():
 
     # Has to happen when they go out... Can't collect rent after busting.
     # this shouldn't get triggered.. out ppl should have loc set to -1 as it happens
+    
     # if current_player.active == False: 
     #     g.players.remove(current_player)
     #     return 0
@@ -76,6 +95,8 @@ def gameplay_loop():
     
     if g.verbose:
         print(f'Rolled {a} and {b}. Landed on {current_square}. ', end='')
+        if current_square == 'Jail':
+            print('Just visiting. ',end='')
         if f:
             print(f'{current_player} passed Go. They collected $200 up to ${current_player.money}. ', end='')
     
@@ -93,8 +114,9 @@ def gameplay_loop():
 
     if current_player.can_build_house():
         current_player.build_houses()
-    current_player.trade()
-    
+    t = current_player.trade([p for p in g.players if p != current_player])
+    if t:
+        handle_trade(t)
     if a == b:
         print(f'{current_player} rolled doubles, they are continuing their turn.')
         gameplay_loop()

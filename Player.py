@@ -1,8 +1,24 @@
 import random as rd
 from Property import Property
 from BoardParameters import prop_set_sizes, house_prices
+
+class Trade:
+    def __init__(self, outbound_props: list[Property],inbound_props: list[Property], money: int, from_player, to_player):
+        # money will be positive if inbound, negative if outbound
+        self.outbound_props, self.inbound_props, self.money = outbound_props, inbound_props, money
+        self.from_player, self.to_player = from_player, to_player
+
+    def flip(self):
+        return Trade(outbound_props=self.inbound_props, inbound_props=self.outbound_props, money=-self.money, from_player=self.to_player, to_player=self.from_player)
+    
+    def __repr__(self):
+        return f'Give: {self.outbound_props} For: {self.inbound_props} Cash: ${self.money}'
+
+class PropertySetSizeException(Exception):
+    pass
+
 class Player:  
-    def __init__(self, name: str,start_money: int = 1500, color_preferences: list[str] = ['brown', 'light blue','pink','orange','red','yellow','green','blue']):
+    def __init__(self, name: str,start_money: int = 1500, score_trade = lambda x: 1, color_preferences: list[str] = ['brown', 'light blue','pink','orange','red','yellow','green','blue']):
         self.money = start_money
         self.properties = []
         self.name = name
@@ -11,8 +27,7 @@ class Player:
         self.color_counts = {s: 0 for s in prop_set_sizes}
         self.color_sets = []
         self.jailed = 0
-        self.color_preferences = color_preferences
-    
+        self.score_trade = score_trade
     
     def pay_money(self, amount):
         if self.money >= amount:
@@ -25,10 +40,18 @@ class Player:
             self.active = False
             return paid_out
         return 0
-    #TODO? 
-    def trade(self):
-        pass
     
+    #TODO? 
+    def trade(self, other_players):
+        possible = self.generate_trades(other_players)
+        for t in sorted(possible, key = lambda x: possible[x],reverse=True):
+            # print(t, possible[t], end= '; ')
+            # ask them to score it
+            outcome = t.to_player.score_trade(t.flip())
+            if outcome > 0:
+                return t
+        
+
     def move(self,doubles=0):
         roll_a, roll_b = rd.randint(1,6), rd.randint(1,6) 
 
@@ -37,7 +60,7 @@ class Player:
 
         self.location = (self.location + roll_a + roll_b)
         
-        go_flag = self.location >= 40
+        go_flag = self.location > 40
         self.location%=40
 
         if go_flag:
@@ -86,11 +109,34 @@ class Player:
                 return props[0]
         return 0
 
-
-
     def get_house_cutoff(self):
         return 200
     
+    def generate_trades(self, other_players: list):
+        # generate list of possible trades, and score them
+        trades = {}
+        
+        for op in other_players:
+            # start with one-for-one trades
+            for op_p in op.properties:
+                for p in self.properties:
+                    t = Trade(outbound_props=[p], inbound_props=[op_p], money=0, from_player=self, to_player=op)
+                    score = self.score_trade(t)
+                    if score >= 0:
+                        trades[t] = score
+        
+        return trades
+    
+    # def score_trade(self, t: Trade) -> float:
+    #     # straight facevalue valuation
+    #     outbound, inbound = 0,0
+    #     for p in t.inbound_props:
+    #         inbound += p.value
+    #     for p in t.outbound_props:
+    #         outbound += p.value
+    #     inbound += t.money
+    #     return inbound - outbound
+
     def __eq__(self,other):
         if other is None: return self is None
         return self.name == other.name
@@ -101,5 +147,3 @@ class Player:
     def get_player_info(self):
         return (f'{self.name}, {self.location}, ${self.money}, {self.properties}')
     
-class PropertySetSizeException(Exception):
-    pass
