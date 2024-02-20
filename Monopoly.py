@@ -49,19 +49,20 @@ def handle_trade(t: Trade):
     
     fr, to = t.from_player, t.to_player
     #flip trade?
-    if money < 0:
+    if t.money < 0:
         pass
 
     for p in t.inbound_props:
         p.owner = fr
         to.properties.remove(p)
         fr.properties.append(p)
+    
     for p in t.outbound_props:
         p.owner = to
         fr.properties.remove(p)
         to.properties.append(p)
     
-    to += fr.pay_money(t.money)
+    to.money += fr.pay_money(t.money)
 
 def gameplay_loop():
     current_player = g.players[g.turn]
