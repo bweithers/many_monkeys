@@ -28,6 +28,7 @@ class Player:
         self.color_sets = []
         self.jailed = 0
         self.score_trade = score_trade
+        self.color_preferences = color_preferences
     
     def pay_money(self, amount):
         if self.money >= amount:
